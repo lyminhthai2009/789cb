@@ -30,6 +30,12 @@ function getIndex(arr,name){
 }
 let topUser = function(){
 	TaiXiu_User.find({'totall':{$gt:0}}, 'totall uid', {sort:{totall:-1}, limit:10}, function(err, results) {
+		// KIỂM TRA NẾU CÓ LỖI HOẶC KHÔNG CÓ KẾT QUẢ
+		if (err || !results || !Array.isArray(results)) {
+			console.log("Lỗi lấy Top User hoặc kết nối DB thất bại.");
+			return; 
+		}
+
 		Promise.all(results.map(function(obj){
 			return new Promise(function(resolve, reject) {
 				UserInfo.findOne({'id': obj.uid}, function(error, result2){
@@ -39,8 +45,10 @@ let topUser = function(){
 		}))
 		.then(function(result){
 			 _tops = result;
-			 io.top = _tops;
-			 
+			 if (io) io.top = _tops; // Kiểm tra io tồn tại trước khi gán
+		})
+		.catch(function(e){
+			console.log("Lỗi xử lý Top User:", e);
 		});
 	});
 }
@@ -600,3 +608,4 @@ let playGame = function(){
 }
 
 module.exports = init;
+
